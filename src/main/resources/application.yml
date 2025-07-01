@@ -1,0 +1,28 @@
+spring:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3307/risingbot
+    username: root
+    password: 1234
+
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+discord:
+#  token: ${DISCORD_BOT_TOKEN}
+  token: MTM4NDgzODY0ODMyNzA0NTEzMA.GFnMMy.f4Ylnfc9cX_C44He9UbCFy85OqgytU2gtzzt50
+#  channel-id: ${DISCORD_CHANNEL_ID}
+  channel-id: 1384819748184920124
+loa:
+#  token: ${LOA_API_TOKEN}
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyIsImtpZCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyJ9.eyJpc3MiOiJodHRwczovL2x1ZHkuZ2FtZS5vbnN0b3ZlLmNvbSIsImF1ZCI6Imh0dHBzOi8vbHVkeS5nYW1lLm9uc3RvdmUuY29tL3Jlc291cmNlcyIsImNsaWVudF9pZCI6IjEwMDAwMDAwMDAxNzk4MDIifQ.j0nCM806MYg5dw26BXbv7WvIZYWbRGYGv9bIHqnRBOUc6Qktmzqug22EdDVevVLfAXVCqu5t5687n1PV9n4g-XrNKLZPzGiyv_SyiqG3X8GqU5ayKaDEh0WCNElEIoA0hCRxP0hGlRlEM_JCro4vjfNiGe4CApZvbYf5hjJ6xP-LnKmm9ad0il6-WGzV6EP9pjuUdcLxKJcv1xoLq-wg7Eu9YDB3D1qT8uYTKzIn6HENvB6hrriKA6WVK-pmzBdLPKAy0Qx0TUwK5TCQnGmzq5wGz0YJih1bVP8BoKviALdu5_1K5Iey1DFHW0l2f0PPbg6-QzIRpc6-MhILvk0pRw

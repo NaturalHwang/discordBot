@@ -1,19 +1,25 @@
 package rising.bot.config
 
-import discord4j.core.DiscordClientBuilder
-import discord4j.core.GatewayDiscordClient
+import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.entities.Activity
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import rising.bot.listener.SlashCommandListener
 
 @Configuration
-class DiscordConfig {
-
+class DiscordConfig (
+    private val slashCommandListener: SlashCommandListener
+) {
     @Bean
-    fun gatewayDiscordClient(@Value("\${discord.token}") token: String): GatewayDiscordClient {
-        return DiscordClientBuilder.create(token)
+    fun jda(@Value("\${discord.token}") botToken: String) =
+        JDABuilder.createDefault(botToken)
+            .addEventListeners(slashCommandListener)
+            .setActivity(Activity.playing(""))
             .build()
-            .login()
-            .block()!!
-    }
+            .also { jda ->
+                jda.awaitReady()
+                // 슬래시 명령어 여러개 등록
+                jda.upsertCommand("쌀섬", "골드 일정 안내").queue()
+            }
 }

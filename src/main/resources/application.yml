@@ -4,20 +4,6 @@ spring:
       charset: UTF-8
       enabled: true
       force: true
-  datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3307/risingbot
-    username: root
-    password: 1234
-
-  jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MariaDBDialect
-    generate-ddl: true
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-
 discord:
 #  token: ${DISCORD_BOT_TOKEN}
   token: MTM4NDgzODY0ODMyNzA0NTEzMA.GFnMMy.f4Ylnfc9cX_C44He9UbCFy85OqgytU2gtzzt50

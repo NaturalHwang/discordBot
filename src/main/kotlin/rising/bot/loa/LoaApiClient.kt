@@ -1,5 +1,6 @@
 package rising.bot.loa
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -15,7 +16,7 @@ class LoaApiClient(
     @Value("\${loa.token}") private val token: String,
     private val restTemplate: RestTemplate
 ) {
-    private val apiBase = "https://developer-lostark.game.onstove.com"
+    private val apiBase = "https://developer-lostark.game.onstove.com/"
 
     fun siblings(mainName: String): List<CharacterInfoDto> {
         val url = UriComponentsBuilder.fromHttpUrl("$apiBase/characters/{name}/siblings")
@@ -72,10 +73,36 @@ class LoaApiClient(
 }
 
 data class ContentsCalendar(
+    @JsonProperty("CategoryName")
+    val categoryName: String,
+    @JsonProperty("ContentsName")
     val contentsName: String,
+    @JsonProperty("ContentsIcon")
+    val contentsIcon: String,
+    @JsonProperty("MinItemLevel")
+    val minItemLevel: Int,
+    @JsonProperty("StartTimes")
+    val startTimes: List<String>?,
+    @JsonProperty("Location")
+    val location: String,
+    @JsonProperty("RewardItems")
     val rewardItems: List<RewardItem>
 )
+
 data class RewardItem(
+    @JsonProperty("ItemLevel")
+    val itemLevel: Int,
+    @JsonProperty("Items")
+    val items: List<Item>
+)
+
+data class Item(
+    @JsonProperty("Name")
     val name: String,
+    @JsonProperty("Icon")
+    val icon: String,
+    @JsonProperty("Grade")
+    val grade: String,
+    @JsonProperty("StartTimes")
     val startTimes: List<String>?
 )

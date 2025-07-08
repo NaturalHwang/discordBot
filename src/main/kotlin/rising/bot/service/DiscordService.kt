@@ -23,7 +23,6 @@ class DiscordService(
         val embed = EmbedBuilder()
             .setTitle("${info.characterName} 레벨업!")
             .setDescription("[${info.serverName}]${info.characterName} : $old → $newLevel")
-            .setThumbnail("")
             .setImage(image)
             .setTimestamp(Instant.now())
             .setColor(Color(46, 204, 113))

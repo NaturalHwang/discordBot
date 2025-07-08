@@ -55,4 +55,27 @@ class LoaApiClient(
         println(response.body)
         return response.body?.armoryProfile
     }
+    fun calendar(): List<ContentsCalendar> {
+        val url = "$apiBase/gamecontents/calendar"
+        val headers = HttpHeaders().apply {
+            set("Authorization", "Bearer $token")
+        }
+        val entity = HttpEntity<Void>(headers)
+        val response = restTemplate.exchange(
+            url,
+            org.springframework.http.HttpMethod.GET,
+            entity,
+            Array<ContentsCalendar>::class.java
+        )
+        return response.body?.toList() ?: emptyList()
+    }
 }
+
+data class ContentsCalendar(
+    val contentsName: String,
+    val rewardItems: List<RewardItem>
+)
+data class RewardItem(
+    val name: String,
+    val startTimes: List<String>?
+)

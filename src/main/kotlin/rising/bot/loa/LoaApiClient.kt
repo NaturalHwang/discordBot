@@ -53,7 +53,6 @@ class LoaApiClient(
             entity,
             CharacterDetailWrapper::class.java
         )
-        println(response.body)
         return response.body?.armoryProfile
     }
     fun calendar(): List<ContentsCalendar> {

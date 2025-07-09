@@ -25,10 +25,10 @@ class bunbaeService {
             시세(판매가): $gold
             인원: $people
             
-            경매 분배금: ${auctionDistribute.toLong()}
             판매 실수령액: ${sellAfterFee.toLong()}
             추천 입찰가: $recommand ~ $breakeven 사이
             손익 분기점(본전 낙찰가): $breakeven
+            경매 분배금: ${breakeven / (people - 1)}
         """.trimIndent()
     }
 }

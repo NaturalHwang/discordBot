@@ -29,16 +29,16 @@ class MessageCommandListener(
                 if (gold == null || people == null) {
                     channel.sendMessage("올바른 예시: `!분배 24000 8` (골드, 인원수)").queue { msg ->
                         // 봇 메시지 삭제 예약
-                        msg.delete().queueAfter(10, TimeUnit.SECONDS)
+                        msg.delete().queueAfter(30, TimeUnit.SECONDS)
                     }
                     // **사용자 메시지도 삭제 예약**
-                    event.message.delete().queueAfter(10, TimeUnit.SECONDS)
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
                 } else {
                     val result = bunbaeService.bunbae(gold, people)
                     channel.sendMessage(result).queue { msg ->
-                        msg.delete().queueAfter(10, TimeUnit.SECONDS)
+                        msg.delete().queueAfter(30, TimeUnit.SECONDS)
                     }
-                    event.message.delete().queueAfter(10, TimeUnit.SECONDS)
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
                 }
             } else {
                 channel.sendMessage("올바른 예시: `!분배 24000 8` (골드, 인원수)").queue { msg ->
@@ -52,11 +52,28 @@ class MessageCommandListener(
         if (content == "!쌀섬") {
             goldCalendarScheduler.findGoldSchedule { result ->
                 channel.sendMessage(result).queue { msg ->
-                    msg.delete().queueAfter(10, TimeUnit.SECONDS)
+                    msg.delete().queueAfter(20, TimeUnit.SECONDS)
                 }
                 // 사용자 명령어 메시지도 삭제
-                event.message.delete().queueAfter(10, TimeUnit.SECONDS)
+                event.message.delete().queueAfter(20, TimeUnit.SECONDS)
             }
+        }
+
+        if (content == "!도움말") {
+            val helpMessage =
+            """
+                **레벨업 감지 기능 등록**: 목표확인 << DM 주세요~!
+                
+                **!분배**: 경매 입찰 시 손익분기점과 입찰추천가를 알려줍니다.
+                사용법) `!분배 거래소가격 인원`  
+                예시: `!분배 120000 8`
+            
+                **!쌀섬**: 이번 주 쌀섬의 일정들을 출력합니다.
+            """.trimIndent()
+            channel.sendMessage(helpMessage).queue { msg ->
+                msg.delete().queueAfter(30, TimeUnit.SECONDS)
+            }
+            event.message.delete().queueAfter(30, TimeUnit.SECONDS)
         }
     }
 }

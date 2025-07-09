@@ -2,6 +2,7 @@ package rising.bot.listener
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import rising.bot.service.GoldCalendarScheduler
 import rising.bot.service.bunbaeService
@@ -10,12 +11,17 @@ import java.util.concurrent.TimeUnit
 @Component
 class MessageCommandListener(
     private val goldCalendarScheduler: GoldCalendarScheduler,
-    private val bunbaeService: bunbaeService
+    private val bunbaeService: bunbaeService,
+    @Value("\${discord.channel-id}") private val allowedChannelId: Long,
+    private val goldAlertService: GoldAlertService,
 ) : ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
 //        봇 자신의 메시지는 무시
         if (event.author.isBot) return
+
+//        허용된 채널 외에 작동X
+        if (event.channel.idLong != allowedChannelId) return
 
         val content = event.message.contentRaw.trim()
         val channel = event.channel

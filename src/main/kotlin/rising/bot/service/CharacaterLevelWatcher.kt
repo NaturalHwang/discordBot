@@ -24,33 +24,38 @@ class CharacterLevelWatcher(
             pool.execute { sync(main) }
         }
 
+    private fun CharacterInfoDto.itemLevelAsDouble(): Double =
+        this.itemAvgLevel.replace(",", "").toDoubleOrNull() ?: 0.0
+
     private fun sync(main: MainCharacter) {
         val mainName = main.name
         val remote: List<CharacterInfoDto> = api.siblings(mainName)
         val dbList = charRepo.findByMain(main)
         val remoteNames = remote.map { dto -> dto.characterName }.toSet()
-        val dbNames = dbList.map { gc -> gc.name }.toSet()
 
         val newOrUpdated = remote.filter { dto ->
-            dto.characterName !in dbNames ||
-                    dbList.find { db -> db.name == dto.characterName }?.itemLevel != dto.itemAvgLevel.toDoubleOrNull()
+            val dbChar = dbList.find { db -> db.name == dto.characterName }
+            val dbLevel = dbChar?.itemLevel ?: 0.0
+            val apiLevel = dto.itemLevelAsDouble()
+            dbChar == null || dbLevel != apiLevel
         }
 
         val deleted = dbList.filter { gc -> gc.name !in remoteNames }
 
         newOrUpdated.forEach { dto ->
             val dbChar = dbList.find { it.name == dto.characterName }
+            val newLevel = dto.itemLevelAsDouble()
             val entity = rising.bot.domain.GameCharacter(
                 id = dbChar?.id,
                 mainId = main.id,
                 name = dto.characterName,
                 serverName = dto.serverName,
                 className = dto.characterClassName,
-                itemLevel = dto.itemAvgLevel.replace(",", "").toDoubleOrNull() ?: 0.0
+                itemLevel = newLevel
             )
             charRepo.save(entity)
             val image = api.detail(dto.characterName)?.characterImage
-            if (dbChar != null && dbChar.itemLevel < (dto.itemAvgLevel.replace(",", "").toDoubleOrNull() ?: 0.0)) {
+            if (dbChar != null && dbChar.itemLevel < newLevel) {
                 if (image != null) {
                     discord.sendLevelUp(dto, image, dbChar.itemLevel)
                 }

@@ -70,9 +70,27 @@ class GoldCalendarScheduler(
             val ref = firebaseDatabase.getReference("gold-schedules/current-week")
             ref.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    val now = System.currentTimeMillis()
                     val schedules = snapshot.children.mapNotNull { it.getValue(GoldSchedule::class.java) }
+//                    현재 기준으로 지나간 데이터는 가져오지 않음
+                    .filter {
+                        try {
+                            val startMillis = ZonedDateTime.parse(it.startTime).toInstant().toEpochMilli()
+                            startMillis > now
+                        } catch (e: Exception) {
+                            false
+                        }
+                    }
+//                    날짜 오름차순 정렬
+                    .sortedBy {
+                        try {
+                            ZonedDateTime.parse(it.startTime).toInstant().toEpochMilli()
+                        } catch (e: Exception) {
+                            Long.MAX_VALUE
+                        }
+                    }
                     val msg = if (schedules.isEmpty()) {
-                        "이번 주 골드를 주는 일정이 없습니다."
+                        "골드를 주는 다른 모험섬이 없습니다."
                     } else {
                         schedules.joinToString("\n\n") {
                             "[${it.contentsName}] 시작 시간: ${formatGoldScheduleTime(it.startTime)}"

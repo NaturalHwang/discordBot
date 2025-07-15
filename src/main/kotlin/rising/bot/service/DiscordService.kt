@@ -17,12 +17,12 @@ class DiscordService(
 
     private fun getTextChannel(): TextChannel? = jda.getTextChannelById(channelId)
 
-    fun sendLevelUp(info: CharacterInfoDto, image: String, old: Double) {
+    fun sendLevelUp(info: CharacterInfoDto, image: String, oldMax: Double) {
         val newLevel = info.itemAvgLevel.replace(",", "").toDoubleOrNull() ?: 0.0
 
         val embed = EmbedBuilder()
             .setTitle("${info.characterName} 레벨업!")
-            .setDescription("[${info.serverName}]${info.characterName} : $old → $newLevel")
+            .setDescription("[${info.serverName}]${info.characterName} : $oldMax → $newLevel")
             .setImage(image)
             .setTimestamp(Instant.now())
             .setColor(Color(46, 204, 113))

@@ -45,19 +45,26 @@ class CharacterLevelWatcher(
         newOrUpdated.forEach { dto ->
             val dbChar = dbList.find { it.name == dto.characterName }
             val newLevel = dto.itemLevelAsDouble()
+//            신규 등록의 경우 현재 레벨이 최대치
+            val prevMax = dbChar?.maxItemLevel ?: newLevel
+
+            val newMax = if (newLevel > prevMax) newLevel else prevMax
+
             val entity = rising.bot.domain.GameCharacter(
                 id = dbChar?.id,
                 mainId = main.id,
                 name = dto.characterName,
                 serverName = dto.serverName,
                 className = dto.characterClassName,
-                itemLevel = newLevel
+                itemLevel = newLevel,
+                maxItemLevel = newMax
             )
             charRepo.save(entity)
+            // 오로지 maxItemLevel을 갱신하는 상황에서만 알림 전송
             val image = api.detail(dto.characterName)?.characterImage
-            if (dbChar != null && dbChar.itemLevel < newLevel) {
+            if (dbChar != null && newLevel > prevMax) {
                 if (image != null) {
-                    discord.sendLevelUp(dto, image, dbChar.itemLevel)
+                    discord.sendLevelUp(dto, image, prevMax)
                 }
             }
         }

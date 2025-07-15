@@ -12,4 +12,5 @@ data class GameCharacter(
     var serverName: String = "",
     var className: String = "",
     var itemLevel: Double = 0.0,
+    var maxItemLevel: Double,
 )

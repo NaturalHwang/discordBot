@@ -58,4 +58,21 @@ class MainCharacterRepository(
         latch.await()
         return result
     }
+
+    fun deleteByName(name: String) {
+        val latch = CountDownLatch(1)
+        db.orderByChild("name").equalTo(name)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (child in snapshot.children) {
+                        child.ref.removeValueAsync()
+                    }
+                    latch.countDown()
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    latch.countDown()
+                }
+            })
+        latch.await()
+    }
 }

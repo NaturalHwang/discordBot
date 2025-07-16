@@ -47,4 +47,22 @@ class GameCharacterRepository {
     fun deleteAll(list: List<GameCharacter>) {
         list.forEach { it.id?.let { db.child(it).removeValueAsync() } }
     }
+
+    fun deleteByMain(main: MainCharacter) {
+        val latch = CountDownLatch(1)
+        db.orderByChild("mainId").equalTo(main.id)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (child in snapshot.children){
+                        child.ref.removeValueAsync()
+                    }
+                    latch.countDown()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    latch.countDown()
+                }
+            })
+        latch.await()
+    }
 }

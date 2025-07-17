@@ -11,7 +11,7 @@ import rising.bot.listener.MessageCommandListener
 class DiscordConfig(
 //    private val slashCommandListener: SlashCommandListener,
     private val messageCommandListener: MessageCommandListener,
-    @Value("\${discord.channel-id}") private val channelId: String
+//    @Value("\${discord.channel-id}") private val channelId: String
 ) {
     @Bean
     fun jda(@Value("\${discord.token}") botToken: String) =

@@ -6,7 +6,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import rising.bot.loa.LoaApiClient
+import rising.bot.component.LoaApiClient
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -61,13 +61,13 @@ class GoldCalendarScheduler(
             }
         }
 
-        val ref = firebaseDatabase.getReference("gold-schedules/current-week")
+        val ref = firebaseDatabase.getReference("global/gold-schedules/current-week")
         ref.setValueAsync(goldSchedules)
     }
 
     fun findGoldSchedule(callback: (String) -> Unit) {
         pool.execute {
-            val ref = firebaseDatabase.getReference("gold-schedules/current-week")
+            val ref = firebaseDatabase.getReference("global/gold-schedules/current-week")
             ref.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val now = System.currentTimeMillis()

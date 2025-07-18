@@ -77,7 +77,7 @@ class CharacterLevelWatcher(
             if (dbChar != null && newLevel > prevMax) {
                 val image = api.detail(dto.characterName)?.characterImage
                 if (image != null) {
-                    discord.sendLevelUp(guildId, channelId, dto, image, prevMax)
+                    discord.sendLevelUp(guildId, channelId, dto, image, prevMax, mainName)
                 }
             }
         }

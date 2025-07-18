@@ -24,12 +24,13 @@ class DiscordService(
         channelId: String,
         info: CharacterInfoDto,
         image: String,
-        oldMax: Double
+        oldMax: Double,
+        mainName: String
     ) {
         val newLevel = info.itemAvgLevel.replace(",", "").toDoubleOrNull() ?: 0.0
 
         val embed = EmbedBuilder()
-            .setTitle("${info.characterName} 레벨업!")
+            .setTitle("${info.characterName}(${mainName}) 레벨업!")
             .setDescription("[${info.serverName}]${info.characterName} : $oldMax → $newLevel")
             .setImage(image)
             .setTimestamp(Instant.now())

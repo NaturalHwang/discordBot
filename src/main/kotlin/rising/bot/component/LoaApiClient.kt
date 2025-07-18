@@ -91,6 +91,25 @@ class LoaApiClient(
             response.body?.toList() ?: emptyList()
         }
     }
+
+    fun searchAuctionItems(request: AuctionItemSearchRequest): AuctionItemResponse? {
+        return swapTokens { token ->
+            val url = "$apiBase/auctions/items"
+            val headers = HttpHeaders().apply {
+                set("Authorization", "Bearer $token")
+                set("accept", "application/json")
+                contentType = org.springframework.http.MediaType.APPLICATION_JSON
+            }
+            val entity = HttpEntity(request, headers)
+            val response = restTemplate.exchange(
+                url,
+                org.springframework.http.HttpMethod.POST,
+                entity,
+                AuctionItemResponse::class.java
+            )
+            response.body
+        }
+    }
 }
 
 data class ContentsCalendar(

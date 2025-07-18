@@ -41,36 +41,39 @@ class MessageCommandListener(
                 }
                 event.message.delete().queueAfter(10, TimeUnit.SECONDS)
                 return
-            }
-            val guildId = event.guild.id
-            val channelId = event.channel.id
-            val registeredChannelId = channelCache.getChannelId(guildId)
-            if (registeredChannelId != null && registeredChannelId == channelId) {
-                channel.sendMessage("**이미 이 채널이 명령 채널로 등록되어 있습니다!**").queue { msg ->
-                    msg.delete().queueAfter(10, TimeUnit.SECONDS)
+            } else {
+                val guildId = event.guild.id
+                val channelId = event.channel.id
+                val registeredChannelId = channelCache.getChannelId(guildId)
+                if (registeredChannelId != null && registeredChannelId == channelId) {
+                    channel.sendMessage("**이미 이 채널이 명령 채널로 등록되어 있습니다!**").queue { msg ->
+                        msg.delete().queueAfter(10, TimeUnit.SECONDS)
+                    }
+                    event.message.delete().queueAfter(10, TimeUnit.SECONDS)
+                    return
                 }
-                event.message.delete().queueAfter(10, TimeUnit.SECONDS)
-                return
-            }
-            if (registeredChannelId != null && registeredChannelId != channelId) {
-                // **덮어쓰기 바로 진행**
-                val jda = event.jda
-                val prevChannel = jda.getTextChannelById(registeredChannelId)
-                val prevChannelName = prevChannel?.name ?: "알 수 없음"
+                if (registeredChannelId != null && registeredChannelId != channelId) {
+                    // **덮어쓰기 바로 진행**
+                    channelCache.registerChannel(guildId, channelId)
 
-                channel.sendMessage("**명령 채널이 기존 '$prevChannelName'에서 이 채널로 변경되었습니다!**").queue { msg ->
+                    val jda = event.jda
+                    val prevChannel = jda.getTextChannelById(registeredChannelId)
+                    val prevChannelName = prevChannel?.name ?: "알 수 없음"
+
+                    channel.sendMessage("**명령 채널이 기존 '$prevChannelName'에서 이 채널로 변경되었습니다!**").queue { msg ->
+                        msg.delete().queueAfter(10, TimeUnit.SECONDS)
+                    }
+                    event.message.delete().queueAfter(10, TimeUnit.SECONDS)
+                    return
+                }
+                // 신규 등록
+                channelCache.registerChannel(guildId, channelId)
+                channel.sendMessage("**이 채널이 명령 채널로 등록되었습니다!**").queue { msg ->
                     msg.delete().queueAfter(10, TimeUnit.SECONDS)
                 }
                 event.message.delete().queueAfter(10, TimeUnit.SECONDS)
                 return
             }
-            // 신규 등록
-            channelCache.registerChannel(guildId, channelId)
-            channel.sendMessage("**이 채널이 명령 채널로 등록되었습니다!**").queue { msg ->
-                msg.delete().queueAfter(10, TimeUnit.SECONDS)
-            }
-            event.message.delete().queueAfter(10, TimeUnit.SECONDS)
-            return
         }
 
 //        명령 채널 체크(이 서버의 명령 채널에서만 동작)

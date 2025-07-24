@@ -110,6 +110,25 @@ class LoaApiClient(
             response.body
         }
     }
+
+    fun searchMarketItems(request: MarketItemRequest): MarketItemResponse? {
+        return swapTokens { token ->
+            val url = "$apiBase/markets/items"
+            val headers = HttpHeaders().apply {
+                set("Authorization", "Bearer $token")
+                set("accept", "application/json")
+                contentType = org.springframework.http.MediaType.APPLICATION_JSON
+            }
+            val entity = HttpEntity(request, headers)
+            val response = restTemplate.exchange(
+                url,
+                org.springframework.http.HttpMethod.POST,
+                entity,
+                MarketItemResponse::class.java
+            )
+            response.body
+        }
+    }
 }
 
 data class ContentsCalendar(

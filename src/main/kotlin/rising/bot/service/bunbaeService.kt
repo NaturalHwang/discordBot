@@ -9,12 +9,15 @@ class bunbaeService {
         val sellAfterFee = gold * 0.95
 
         // 경매 분배금: 10만 초과분만 5% 수수료 적용 (시세가 경매 낙찰가와 같다는 가정)
-        val auctionDistributedTotal = if (gold <= 100_000) {
-            gold.toDouble()
-        } else {
-            100_000.0 + (gold - 100_000) * 0.95
-        }
-        val auctionDistribute = auctionDistributedTotal / (people - 1)
+//        val auctionDistributedTotal = if (gold <= 100_000) {
+//            gold.toDouble()
+//        } else {
+//            100_000.0 + (gold - 100_000) * 0.95
+//        }
+//        val auctionDistribute = auctionDistributedTotal / (people - 1)
+
+        // https://lostark.game.onstove.com/News/Notice/Views/13173 패치 노트 적용
+        val auctionDistribute = ((sellAfterFee / (people - 1)) * 0.95).toLong()
 
         // 손익분기점: 판매 실수령액
         val breakeven = (sellAfterFee - auctionDistribute).toLong()
@@ -28,7 +31,7 @@ class bunbaeService {
             판매 실수령액: ${sellAfterFee.toLong()}
             추천 입찰가: $recommand ~ $breakeven 사이
             손익 분기점(본전 낙찰가): $breakeven
-            경매 분배금: ${auctionDistribute.toLong()}
+            경매 분배금: ${auctionDistribute}
         """.trimIndent()
     }
 }

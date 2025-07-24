@@ -6,7 +6,7 @@ data class AuctionItemResponse(
     @JsonProperty("PageNo") val pageNo: Int,
     @JsonProperty("PageSize") val pageSize: Int,
     @JsonProperty("TotalCount") val totalCount: Int,
-    @JsonProperty("Items") val items: List<AuctionItem>?
+    @JsonProperty("Items") val items: List<AuctionItem>? = emptyList()
 )
 
 data class AuctionItem(

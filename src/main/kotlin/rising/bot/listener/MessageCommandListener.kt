@@ -102,6 +102,10 @@ class MessageCommandListener(
                 **!상단일 or !상하 or !상중 or !상상**: 각각 해당하는 악세의 최저가를 출력합니다(품질, 거횟 등 고려x)
                 예시: `!상중`
                 
+                **!상세검색**: 품질, 부여 옵션 입력 시 최저가 5개를 출력합니다.
+                사용법) `!상세검색 품질 옵션1 옵션2`
+                예시: `!상세검색 80 치피상 or !상세검색 70 치피상 치적상
+                
                 **!(레벨)겁 or 작 or 멸 or 홍** : 해당 레벨의 보석 최저가를 출력합니다.
                 예시: `!10겁`
                  
@@ -310,12 +314,34 @@ class MessageCommandListener(
                 return
             }
 
+            content.startsWith("!상세검색") -> {
+                val args = content.removePrefix("!상세검색").trim().split("\\s+".toRegex())
+
+                val quality = args.getOrNull(0)?.toIntOrNull()
+                val option1 = args.getOrNull(1)
+                val option2 = args.getOrNull(2)
+
+                val resultMessage = auction.detailAuctionSearch(quality, option1, option2)
+
+                if (quality == null || option1 == null) {
+                    // 필수값 누락
+                    event.channel.sendMessage("!상세검색 품질(숫자) 옵션1 옵션2 형태로 입력하세요.")
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                    return
+                }
+                event.channel.sendMessage(resultMessage)
+                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+
+            }
+
             gemRegex.matches(content) -> {
                 val gemInput = content.removePrefix("!")
                 val resultMessage = auction.findGemMinPrice(gemInput)
                 event.channel.sendMessage(resultMessage)
-                    .queue { msg -> msg.delete().queueAfter(10, TimeUnit.SECONDS) }
-                event.message.delete().queueAfter(10, TimeUnit.SECONDS)
+                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
 
                 return
             }

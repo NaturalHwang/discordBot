@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import rising.bot.component.LoaApiClient
 import rising.bot.dto.AuctionItemSearchRequest
 import rising.bot.dto.MarketItemRequest
+import rising.bot.preset.AuctionPreset
 import rising.bot.preset.NamePreset
 
 @Service
@@ -61,6 +62,60 @@ class AuctionService (
             val body = items.joinToString("\n") { it.second }
             "$header\n$body"
         }
+    }
+
+    fun detailAuctionSearch(quality:Int?, option1: String?, option2: String?): String {
+        val allPresets = AuctionPreset.상단일 + AuctionPreset.상하 + AuctionPreset.상중 + AuctionPreset.상상
+
+        val normOpt1 = option1?.replace(" ", "")
+        val normOpt2 = option2?.replace(" ", "")
+
+        val matchedPreset = allPresets.find { preset ->
+            val normName = preset.name.replace(" ", "")
+            if(normOpt2.isNullOrBlank()) {
+                normName.contains(normOpt1!!)
+            } else {
+                normName.contains(normOpt1!!) && normName.contains(normOpt2)
+            }
+        }
+
+        val request = baseRequest.copy(
+            categoryCode = (matchedPreset?.categoryCode)!!,
+            etcOptions = (matchedPreset?.ectOptions)!!,
+            itemGradeQuality = quality
+        )
+
+        val result = loaApi.searchAuctionItems(request)
+
+        if (result?.items == null || result.items.isEmpty()) {
+            return "검색 결과가 존재하지 않습니다."
+        }
+//        // 가독성 떨어져서 아래 코드로 변경
+//        return result!!.items!!.joinToString ("\n") { item ->
+//            val statMap = item.options
+//                .filter { it.type == 5 }
+//                .associateBy({ it.optionName }, { it.value })
+//
+//            val 힘민지 = statMap["지능"] ?: "-"
+//
+//            "${item.name} 거래 횟수: ${item.auctionInfo.tradeAllowCount} 품질: ${item.gradeQuality} 힘민지 $힘민지 즉시 구매가: ${item.auctionInfo.buyPrice}"
+//        }
+        return result!!.items!!
+            .filter { it.gradeQuality >= (quality ?: 0) }
+            .take(5)
+            .joinToString("\n-----------------------------\n") { item ->
+                val statMap = item.options.filter { it.type == 5 }
+                    .associateBy({ it.optionName }, { it.value })
+                val 힘민지 = statMap["힘"] ?: "-"
+
+                """
+                [${item.name}]
+                - 거래 횟수: ${item.auctionInfo.tradeAllowCount}
+                - 품질: ${item.gradeQuality}
+                - 힘민지: $힘민지
+                - 즉시 구매가: ${item.auctionInfo.buyPrice}
+                """.trimIndent()
+            }
     }
 
     val gemNameMap = mapOf(

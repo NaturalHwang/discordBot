@@ -27,107 +27,171 @@ class AuctionService (
         skillOptions = emptyList()
     )
 
+//    fun handleAuctionPreset(
+//        presets: List<NamePreset>,
+//        guildId: String,
+//        channelId: String,
+//        onResult: (String) -> Unit
+//    ){
+//        loaApi.getApiKeys(guildId, channelId) { apiKeys ->
+//            if (apiKeys.isEmpty()) {
+//                onResult("해당 채널에 등록된 API키가 없습니다.")
+//                return@getApiKeys
+//            }
+//            println(apiKeys)
+//            val categoryNameMap = mapOf(
+//                200010 to "목걸이",
+//                200020 to "귀걸이",
+//                200030 to "반지"
+//            )
+//            // 프리셋 처리 결과를 카테고리 코드별로 그룹화
+//            val groupedResults = presets
+//                .map { namedPreset ->
+//                    val request = baseRequest.copy(
+//                        categoryCode = namedPreset.categoryCode,
+//                        etcOptions = namedPreset.ectOptions
+//                    )
+//                    val result = loaApi.searchAuctionItems(request, apiKeys)
+//                    println("여기까지 옴")
+//                    val minPrice = result?.items?.orEmpty()!!
+//                        .mapNotNull { it.auctionInfo.buyPrice }
+//                        .minOrNull()
+//                    val msg = if (minPrice != null) {
+//                        "${namedPreset.name}: $minPrice"
+//                    } else {
+//                        "${namedPreset.name}: -"
+//                    }
+//                    // Pair(카테고리코드, 결과문자열)
+//                    namedPreset.categoryCode to msg
+//                }
+//                .groupBy { it.first }  // 카테고리 코드별로 그룹화
+//
+//        // 각 카테고리별로 결과 묶어서 출력
+////        return groupedResults.entries.joinToString("\n\n") { (categoryCode, items) ->
+////            val header = categoryNameMap[categoryCode] ?: "기타"
+////            val body = items.joinToString("\n") { it.second }
+////            "$header\n$body"
+////        }
+//            onResult(groupedResults.entries.joinToString("\n\n") { (categoryCode, items) ->
+//                val header = categoryNameMap[categoryCode] ?: "기타"
+//                val body = items.joinToString("\n") { it.second }
+//                "$header\n$body"
+//            })
+//        }
+//    }
+
     fun handleAuctionPreset(
         presets: List<NamePreset>,
         guildId: String,
-        channelId: String,
-        onResult: (String) -> Unit
-    ){
-        loaApi.getApiKeys(guildId, channelId) { apiKeys ->
-            if (apiKeys.isEmpty()) {
-                onResult("해당 채널에 등록된 API키가 없습니다.")
-                return@getApiKeys
-            }
-            val categoryNameMap = mapOf(
-                200010 to "목걸이",
-                200020 to "귀걸이",
-                200030 to "반지"
-            )
-            // 프리셋 처리 결과를 카테고리 코드별로 그룹화
-            val groupedResults = presets
-                .map { namedPreset ->
-                    val request = baseRequest.copy(
-                        categoryCode = namedPreset.categoryCode,
-                        etcOptions = namedPreset.ectOptions
-                    )
-                    val result = loaApi.searchAuctionItems(request, apiKeys)
-                    val minPrice = result?.items?.orEmpty()!!
-                        .mapNotNull { it.auctionInfo.buyPrice }
-                        .minOrNull()
-                    val msg = if (minPrice != null) {
-                        "${namedPreset.name}: $minPrice"
-                    } else {
-                        "${namedPreset.name}: -"
-                    }
-                    // Pair(카테고리코드, 결과문자열)
-                    namedPreset.categoryCode to msg
+        channelId: String
+    ): String {
+        // 동기식으로 바로 API키 조회
+        val apiKeys = loaApi.getApiKeys(guildId, channelId)
+        if (apiKeys.isEmpty()) {
+            return "해당 채널에 등록된 API키가 없습니다."
+        }
+        println(apiKeys)
+        val categoryNameMap = mapOf(
+            200010 to "목걸이",
+            200020 to "귀걸이",
+            200030 to "반지"
+        )
+        // 프리셋 처리 결과를 카테고리 코드별로 그룹화
+        val groupedResults = presets
+            .map { namedPreset ->
+                val request = baseRequest.copy(
+                    categoryCode = namedPreset.categoryCode,
+                    etcOptions = namedPreset.ectOptions
+                )
+                val result = loaApi.searchAuctionItems(request, apiKeys)
+                println("여기까지 옴")
+                val minPrice = result?.items?.orEmpty()
+                    ?.mapNotNull { it.auctionInfo.buyPrice }
+                    ?.minOrNull()
+                val msg = if (minPrice != null) {
+                    "${namedPreset.name}: $minPrice"
+                } else {
+                    "${namedPreset.name}: -"
                 }
-                .groupBy { it.first }  // 카테고리 코드별로 그룹화
+                // Pair(카테고리코드, 결과문자열)
+                namedPreset.categoryCode to msg
+            }
+            .groupBy { it.first }  // 카테고리 코드별로 그룹화
 
         // 각 카테고리별로 결과 묶어서 출력
-//        return groupedResults.entries.joinToString("\n\n") { (categoryCode, items) ->
-//            val header = categoryNameMap[categoryCode] ?: "기타"
-//            val body = items.joinToString("\n") { it.second }
-//            "$header\n$body"
-//        }
-            onResult(groupedResults.entries.joinToString("\n\n") { (categoryCode, items) ->
-                val header = categoryNameMap[categoryCode] ?: "기타"
-                val body = items.joinToString("\n") { it.second }
-                "$header\n$body"
-            })
+        return groupedResults.entries.joinToString("\n\n") { (categoryCode, items) ->
+            val header = categoryNameMap[categoryCode] ?: "기타"
+            val body = items.joinToString("\n") { it.second }
+            "$header\n$body"
         }
     }
 
-    fun detailAuctionSearch(
-        quality:Int?,
-        option1: String?,
-        option2: String?,
-        guildId: String,
-        channelId: String,
-        onResult: (String) -> Unit
-    ) {
-        loaApi.getApiKeys(guildId, channelId) { apiKeys ->
-            if (apiKeys.isEmpty()) {
-                onResult("해당 채널에 등록된 API키가 없습니다.")
-                return@getApiKeys
-            }
-            val allPresets = AuctionPreset.상단일 + AuctionPreset.상하 + AuctionPreset.상중 + AuctionPreset.상상
-
-            val normOpt1 = option1?.replace(" ", "")
-            val normOpt2 = option2?.replace(" ", "")
-
-            val matchedPreset = allPresets.find { preset ->
-                val normName = preset.name.replace(" ", "")
-                if (normOpt2.isNullOrBlank()) {
-                    normName.contains(normOpt1!!)
-                } else {
-                    normName.contains(normOpt1!!) && normName.contains(normOpt2)
-                }
-            }
-
-            val request = baseRequest.copy(
-                categoryCode = (matchedPreset?.categoryCode)!!,
-                etcOptions = (matchedPreset?.ectOptions)!!,
-                itemGradeQuality = quality
-            )
-
-            val result = loaApi.searchAuctionItems(request, apiKeys)
-
-            if (result?.items == null || result.items.isEmpty()) {
-//                return "검색 결과가 존재하지 않습니다."
-                onResult("검색 결과가 존재하지 않습니다.")
-            }
-//        // 가독성 떨어져서 아래 코드로 변경
-//        return result!!.items!!.joinToString ("\n") { item ->
-//            val statMap = item.options
-//                .filter { it.type == 5 }
-//                .associateBy({ it.optionName }, { it.value })
+//    fun detailAuctionSearch(
+//        quality:Int?,
+//        option1: String?,
+//        option2: String?,
+//        guildId: String,
+//        channelId: String,
+//        onResult: (String) -> Unit
+//    ) {
+//        loaApi.getApiKeys(guildId, channelId) { apiKeys ->
+//            if (apiKeys.isEmpty()) {
+//                onResult("해당 채널에 등록된 API키가 없습니다.")
+//                return@getApiKeys
+//            }
+//            val allPresets = AuctionPreset.상단일 + AuctionPreset.상하 + AuctionPreset.상중 + AuctionPreset.상상
 //
-//            val 힘민지 = statMap["지능"] ?: "-"
+//            val normOpt1 = option1?.replace(" ", "")
+//            val normOpt2 = option2?.replace(" ", "")
 //
-//            "${item.name} 거래 횟수: ${item.auctionInfo.tradeAllowCount} 품질: ${item.gradeQuality} 힘민지 $힘민지 즉시 구매가: ${item.auctionInfo.buyPrice}"
-//        }
-//        return result!!.items!!
+//            val matchedPreset = allPresets.find { preset ->
+//                val normName = preset.name.replace(" ", "")
+//                if (normOpt2.isNullOrBlank()) {
+//                    normName.contains(normOpt1!!)
+//                } else {
+//                    normName.contains(normOpt1!!) && normName.contains(normOpt2)
+//                }
+//            }
+//
+//            val request = baseRequest.copy(
+//                categoryCode = (matchedPreset?.categoryCode)!!,
+//                etcOptions = (matchedPreset?.ectOptions)!!,
+//                itemGradeQuality = quality
+//            )
+//
+//            val result = loaApi.searchAuctionItems(request, apiKeys)
+//
+//            if (result?.items == null || result.items.isEmpty()) {
+////                return "검색 결과가 존재하지 않습니다."
+//                onResult("검색 결과가 존재하지 않습니다.")
+//            }
+////        // 가독성 떨어져서 아래 코드로 변경
+////        return result!!.items!!.joinToString ("\n") { item ->
+////            val statMap = item.options
+////                .filter { it.type == 5 }
+////                .associateBy({ it.optionName }, { it.value })
+////
+////            val 힘민지 = statMap["지능"] ?: "-"
+////
+////            "${item.name} 거래 횟수: ${item.auctionInfo.tradeAllowCount} 품질: ${item.gradeQuality} 힘민지 $힘민지 즉시 구매가: ${item.auctionInfo.buyPrice}"
+////        }
+////        return result!!.items!!
+////            .filter { it.gradeQuality >= (quality ?: 0) }
+////            .take(5)
+////            .joinToString("\n-----------------------------\n") { item ->
+////                val statMap = item.options.filter { it.type == 5 }
+////                    .associateBy({ it.optionName }, { it.value })
+////                val 힘민지 = statMap["힘"] ?: "-"
+////
+////                """
+////                [${item.name}]
+////                - 거래 횟수: ${item.auctionInfo.tradeAllowCount}
+////                - 품질: ${item.gradeQuality}
+////                - 힘민지: $힘민지
+////                - 즉시 구매가: ${item.auctionInfo.buyPrice}
+////                """.trimIndent()
+////            }
+//            onResult(result!!.items!!
 //            .filter { it.gradeQuality >= (quality ?: 0) }
 //            .take(5)
 //            .joinToString("\n-----------------------------\n") { item ->
@@ -142,8 +206,58 @@ class AuctionService (
 //                - 힘민지: $힘민지
 //                - 즉시 구매가: ${item.auctionInfo.buyPrice}
 //                """.trimIndent()
-//            }
-            onResult(result!!.items!!
+//            })
+//        }
+//    }
+
+    fun detailAuctionSearch(
+        quality:Int?,
+        option1: String?,
+        option2: String?,
+        guildId: String,
+        channelId: String,
+    ): String {
+        val apiKeys = loaApi.getApiKeys(guildId, channelId)
+        if (apiKeys.isEmpty()) {
+            return "해당 채널에 등록된 API키가 없습니다."
+        }
+
+        val allPresets = AuctionPreset.상단일 + AuctionPreset.상하 + AuctionPreset.상중 + AuctionPreset.상상
+
+        val normOpt1 = option1?.replace(" ", "")
+        val normOpt2 = option2?.replace(" ", "")
+
+        val matchedPreset = allPresets.find { preset ->
+            val normName = preset.name.replace(" ", "")
+            if (normOpt2.isNullOrBlank()) {
+                normName.contains(normOpt1!!)
+            } else {
+                normName.contains(normOpt1!!) && normName.contains(normOpt2)
+            }
+        }
+
+        val request = baseRequest.copy(
+            categoryCode = (matchedPreset?.categoryCode)!!,
+            etcOptions = (matchedPreset?.ectOptions)!!,
+            itemGradeQuality = quality
+        )
+
+        val result = loaApi.searchAuctionItems(request, apiKeys)
+
+        if (result?.items == null || result.items.isEmpty()) {
+                return "검색 결과가 존재하지 않습니다."
+        }
+//        // 가독성 떨어져서 아래 코드로 변경
+//        return result!!.items!!.joinToString ("\n") { item ->
+//            val statMap = item.options
+//                .filter { it.type == 5 }
+//                .associateBy({ it.optionName }, { it.value })
+//
+//            val 힘민지 = statMap["지능"] ?: "-"
+//
+//            "${item.name} 거래 횟수: ${item.auctionInfo.tradeAllowCount} 품질: ${item.gradeQuality} 힘민지 $힘민지 즉시 구매가: ${item.auctionInfo.buyPrice}"
+//        }
+        return result!!.items!!
             .filter { it.gradeQuality >= (quality ?: 0) }
             .take(5)
             .joinToString("\n-----------------------------\n") { item ->
@@ -158,8 +272,7 @@ class AuctionService (
                 - 힘민지: $힘민지
                 - 즉시 구매가: ${item.auctionInfo.buyPrice}
                 """.trimIndent()
-            })
-        }
+            }
     }
 
     val gemNameMap = mapOf(
@@ -199,37 +312,61 @@ class AuctionService (
         )
     }
 
+//    fun findGemMinPrice(
+//        input: String,
+//        guildId: String,
+//        channelId: String,
+//        onResult: (String) -> Unit
+//    ){
+//        loaApi.getApiKeys(guildId, channelId) { apiKeys ->
+//            if (apiKeys.isEmpty()) {
+//                onResult("해당 채널에 등록된 API키가 없습니다.")
+//                return@getApiKeys
+//            }
+//            val itemName = parseGemInput(input)
+//            if (itemName == null) {
+//    //            return "올바른 형식(예: 7겁, 8작, 9멸, 10홍 등)으로 입력해 주세요."
+//                onResult("올바른 형식(예: 7겁, 8작, 9멸, 10홍 등)으로 입력해 주세요.")
+//            }
+//            val request = makeGemSearchRequest(itemName!!)
+//            val response = loaApi.searchAuctionItems(request, apiKeys)
+//            val minPrice = response?.items?.orEmpty()?.mapNotNull { it.auctionInfo.buyPrice }?.minOrNull()
+//    //        return if (minPrice != null) {
+//    //            "$itemName 최저가: $minPrice 골드"
+//    //        } else {
+//    //            "$itemName 결과 없음"
+//    //        }
+//            onResult(
+//                if(minPrice != null) {
+//                    "$itemName 최저가: $minPrice 골드"
+//                } else {
+//                    "$itemName 결과 없음"
+//                }
+//            )
+//        }
+//    }
+
     fun findGemMinPrice(
         input: String,
         guildId: String,
         channelId: String,
-        onResult: (String) -> Unit
-    ){
-        loaApi.getApiKeys(guildId, channelId) { apiKeys ->
-            if (apiKeys.isEmpty()) {
-                onResult("해당 채널에 등록된 API키가 없습니다.")
-                return@getApiKeys
-            }
-            val itemName = parseGemInput(input)
-            if (itemName == null) {
-    //            return "올바른 형식(예: 7겁, 8작, 9멸, 10홍 등)으로 입력해 주세요."
-                onResult("올바른 형식(예: 7겁, 8작, 9멸, 10홍 등)으로 입력해 주세요.")
-            }
-            val request = makeGemSearchRequest(itemName!!)
-            val response = loaApi.searchAuctionItems(request, apiKeys)
-            val minPrice = response?.items?.orEmpty()?.mapNotNull { it.auctionInfo.buyPrice }?.minOrNull()
-    //        return if (minPrice != null) {
-    //            "$itemName 최저가: $minPrice 골드"
-    //        } else {
-    //            "$itemName 결과 없음"
-    //        }
-            onResult(
-                if(minPrice != null) {
-                    "$itemName 최저가: $minPrice 골드"
-                } else {
-                    "$itemName 결과 없음"
-                }
-            )
+    ): String {
+        val apiKeys = loaApi.getApiKeys(guildId, channelId)
+        if (apiKeys.isEmpty()) {
+            return "해당 채널에 등록된 API키가 없습니다."
+        }
+
+        val itemName = parseGemInput(input)
+        if (itemName == null) {
+            return "올바른 형식(예: 7겁, 8작, 9멸, 10홍 등)으로 입력해 주세요."
+        }
+        val request = makeGemSearchRequest(itemName!!)
+        val response = loaApi.searchAuctionItems(request, apiKeys)
+        val minPrice = response?.items?.orEmpty()?.mapNotNull { it.auctionInfo.buyPrice }?.minOrNull()
+        return if (minPrice != null) {
+            "$itemName 최저가: $minPrice 골드"
+        } else {
+            "$itemName 결과 없음"
         }
     }
 
@@ -242,27 +379,44 @@ class AuctionService (
         itemName = null
     )
 
+//    fun getExpensiveEngravingBooks(
+//        guildId: String,
+//        channelId: String,
+//        onResult: (String) -> Unit
+//    ){
+//        loaApi.getApiKeys(guildId, channelId) { apiKeys ->
+//            if (apiKeys.isEmpty()) {
+//                onResult("해당 채널에 등록된 API키가 없습니다.")
+//                return@getApiKeys
+//            }
+//            val request = marketRequest
+//            val response = loaApi.searchMarketItems(request, apiKeys)
+//
+////            return response!!.items.joinToString(separator = "\n") { item ->
+////                "${item.name}: ${item.currentMinPrice}"
+////            }
+//            onResult(
+//                response!!.items.joinToString(separator = "\n") { item ->
+//                    "${item.name}: ${item.currentMinPrice}"
+//                }
+//            )
+//        }
+//    }
+
     fun getExpensiveEngravingBooks(
         guildId: String,
         channelId: String,
-        onResult: (String) -> Unit
-    ){
-        loaApi.getApiKeys(guildId, channelId) { apiKeys ->
-            if (apiKeys.isEmpty()) {
-                onResult("해당 채널에 등록된 API키가 없습니다.")
-                return@getApiKeys
-            }
-            val request = marketRequest
-            val response = loaApi.searchMarketItems(request, apiKeys)
+    ): String {
+        val apiKeys = loaApi.getApiKeys(guildId, channelId)
+        if (apiKeys.isEmpty()) {
+            return "해당 채널에 등록된 API키가 없습니다."
+        }
 
-//            return response!!.items.joinToString(separator = "\n") { item ->
-//                "${item.name}: ${item.currentMinPrice}"
-//            }
-            onResult(
-                response!!.items.joinToString(separator = "\n") { item ->
-                    "${item.name}: ${item.currentMinPrice}"
-                }
-            )
+        val request = marketRequest
+        val response = loaApi.searchMarketItems(request, apiKeys)
+
+        return response!!.items.joinToString(separator = "\n") { item ->
+            "${item.name}: ${item.currentMinPrice}"
         }
     }
 }

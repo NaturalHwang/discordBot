@@ -43,44 +43,52 @@ class LoaApiClient(
     }
 
     // API 키 저장 (등록)
-    fun registerApiKey(
-        guildId: String, channelId: String, apiKey: String, onComplete: (Boolean) -> Unit
-    ) {
-        getApiKeys(guildId, channelId) { existingKeys ->
-            if (existingKeys.any { it.trim() == apiKey.trim() }) {
-                // 이미 등록된 키
-                onComplete(false)
-                return@getApiKeys
-            }
-            // 중복이 아니면 등록 진행
-            val encryptedKey = encryptApiKey(apiKey)
-            firebaseDatabase.getReference("channels")
-                .child(guildId)
-                .child(channelId)
-                .child("apiKeys")
-                .push()
-                .setValue(encryptedKey, DatabaseReference.CompletionListener { error, _ ->
-                    onComplete(error == null)
-                })
+    fun registerApiKey(guildId: String, channelId: String, apiKey: String): Boolean {
+        val existingKeys = getApiKeys(guildId, channelId) // 위에서 만든 동기 함수
+        if (existingKeys.any { it.trim() == apiKey.trim() }) {
+            // 이미 등록된 키
+            return false
         }
-    }
-
-    // API 키 조회 (비동기)
-    fun getApiKeys(guildId: String, channelId: String, onResult: (List<String>) -> Unit) {
-        firebaseDatabase.getReference("channels")
+        // 중복이 아니면 등록 진행
+        val encryptedKey = encryptApiKey(apiKey)
+        val ref = firebaseDatabase.getReference("channels")
             .child(guildId)
             .child(channelId)
             .child("apiKeys")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val encryptedList = snapshot.children.mapNotNull { it.getValue(String::class.java) }
-                    val decrypted = encryptedList.map { decryptApiKey(it) }
-                    onResult(decrypted)
+            .push()
+        val latch = java.util.concurrent.CountDownLatch(1)
+        var result = false
+        ref.setValue(encryptedKey, DatabaseReference.CompletionListener { error, _ ->
+            result = error == null
+            latch.countDown()
+        })
+        latch.await(3, java.util.concurrent.TimeUnit.SECONDS)
+        return result
+    }
+
+    // API 키 조회 (동기)
+    fun getApiKeys(guildId: String, channelId: String): List<String> {
+        val ref = firebaseDatabase.getReference("channels")
+            .child(guildId)
+            .child(channelId)
+            .child("apiKeys")
+        val latch = java.util.concurrent.CountDownLatch(1)
+        val result = mutableListOf<String>()
+        ref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val encryptedList = snapshot.children.mapNotNull { child ->
+                    child.getValue(String::class.java)
                 }
-                override fun onCancelled(error: DatabaseError) {
-                    onResult(emptyList())
-                }
-            })
+                val decrypted = encryptedList.map { decryptApiKey(it) }
+                result.addAll(decrypted)
+                latch.countDown()
+            }
+            override fun onCancelled(error: DatabaseError) {
+                latch.countDown()
+            }
+        })
+        latch.await(3, java.util.concurrent.TimeUnit.SECONDS) // 3초 타임아웃
+        return result
     }
 
 //    private fun <T> swapTokens(apiCall: (String) -> T): T {
@@ -108,6 +116,7 @@ class LoaApiClient(
             try {
                 return apiCall(token)
             } catch (e: org.springframework.web.client.HttpClientErrorException.TooManyRequests) {
+                println(e)
                 lastException = e
                 tokenCooldowns[token] = now + 60_000 // 1분 쿨타임
             }
@@ -187,6 +196,7 @@ class LoaApiClient(
                 entity,
                 AuctionItemResponse::class.java
             )
+            println(response)
             response.body
         }
     }

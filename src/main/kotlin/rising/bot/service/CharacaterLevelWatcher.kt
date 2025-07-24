@@ -41,52 +41,47 @@ class CharacterLevelWatcher(
     private fun sync(guildId: String, channelId: String, main: MainCharacter) {
         val mainName = main.name
 
-        api.getApiKeys(guildId, channelId) { apiKeys ->
-            if (apiKeys.isEmpty()) return@getApiKeys // 키 없으면 아무 작업 X (or 알림)
+        val apiKeys = api.getApiKeys(guildId, channelId)
+        if (apiKeys.isEmpty()) return // 키 없으면 아무 작업 X (or 알림)
 
-            val remote: List<CharacterInfoDto> = api.siblings(mainName, apiKeys)
-        //        val dbList = charRepo.findByMain(main)
-            val dbList = charRepo.findByMain(guildId, channelId, main)
-            val remoteNames = remote.map { dto -> dto.characterName }.toSet()
+        val remote: List<CharacterInfoDto> = api.siblings(mainName, apiKeys)
+        val dbList = charRepo.findByMain(guildId, channelId, main)
+        val remoteNames = remote.map { dto -> dto.characterName }.toSet()
 
-            val newOrUpdated = remote.filter { dto ->
-                val dbChar = dbList.find { db -> db.name == dto.characterName }
-                val dbLevel = dbChar?.itemLevel ?: 0.0
-                val apiLevel = dto.itemLevelAsDouble()
-                dbChar == null || dbLevel != apiLevel
-            }
+        val newOrUpdated = remote.filter { dto ->
+            val dbChar = dbList.find { db -> db.name == dto.characterName }
+            val dbLevel = dbChar?.itemLevel ?: 0.0
+            val apiLevel = dto.itemLevelAsDouble()
+            dbChar == null || dbLevel != apiLevel
+        }
 
-            val deleted = dbList.filter { gc -> gc.name !in remoteNames }
+        val deleted = dbList.filter { gc -> gc.name !in remoteNames }
 
-            newOrUpdated.forEach { dto ->
-                val dbChar = dbList.find { it.name == dto.characterName }
-                val newLevel = dto.itemLevelAsDouble()
-        //            신규 등록의 경우 현재 레벨이 최대치
-                val prevMax = dbChar?.maxItemLevel ?: newLevel
+        newOrUpdated.forEach { dto ->
+            val dbChar = dbList.find { it.name == dto.characterName }
+            val newLevel = dto.itemLevelAsDouble()
+            val prevMax = dbChar?.maxItemLevel ?: newLevel
 
-                val newMax = if (newLevel > prevMax) newLevel else prevMax
+            val newMax = if (newLevel > prevMax) newLevel else prevMax
 
-                val entity = rising.bot.domain.GameCharacter(
-                    id = dbChar?.id,
-                    mainId = main.id,
-                    name = dto.characterName,
-                    serverName = dto.serverName,
-                    className = dto.characterClassName,
-                    itemLevel = newLevel,
-                    maxItemLevel = newMax
-                )
-        //            charRepo.save(entity)
-                charRepo.save(guildId, channelId, entity)
-                // 오로지 maxItemLevel을 갱신하는 상황에서만 알림 전송
-                if (dbChar != null && newLevel > prevMax) {
-                    val image = api.detail(dto.characterName, apiKeys)?.characterImage
-                    if (image != null) {
-                        discord.sendLevelUp(guildId, channelId, dto, image, prevMax, mainName)
-                    }
+            val entity = rising.bot.domain.GameCharacter(
+                id = dbChar?.id,
+                mainId = main.id,
+                name = dto.characterName,
+                serverName = dto.serverName,
+                className = dto.characterClassName,
+                itemLevel = newLevel,
+                maxItemLevel = newMax
+            )
+            charRepo.save(guildId, channelId, entity)
+            // 오로지 maxItemLevel을 갱신하는 상황에서만 알림 전송
+            if (dbChar != null && newLevel > prevMax) {
+                val image = api.detail(dto.characterName, apiKeys)?.characterImage
+                if (image != null) {
+                    discord.sendLevelUp(guildId, channelId, dto, image, prevMax, mainName)
                 }
             }
-        //        charRepo.deleteAll(deleted)
-                charRepo.deleteAll(guildId, channelId, deleted)
         }
+        charRepo.deleteAll(guildId, channelId, deleted)
     }
 }

@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.springframework.stereotype.Component
 import rising.bot.component.ChannelCache
+import rising.bot.component.LoaApiClient
 import rising.bot.preset.AuctionPreset
 import rising.bot.repository.MainCharacterRepository
 import rising.bot.service.AuctionService
@@ -21,6 +22,7 @@ class MessageCommandListener(
     private val channelCache: ChannelCache,
     private val repo: MainCharacterRepository,
     private val auction: AuctionService,
+    private val loaApi: LoaApiClient,
 ) : ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
@@ -87,7 +89,7 @@ class MessageCommandListener(
         when {
             content == "!도움말" -> {
                 val helpMessage = """
-                **관리자 기능**: !캐릭터등록 대표캐릭터명, !등록해제 대표캐릭터명
+                **관리자 기능**: !캐릭터등록 대표캐릭터명, !등록해제 대표캐릭터명, !채널등록, !api등록
                 
                 **!경매**: 경매 입찰 시 손익분기점과 입찰추천가를 알려줍니다.
                 사용법) `!경매 거래소가격 인원`  
@@ -156,6 +158,38 @@ class MessageCommandListener(
                     msg.delete().queueAfter(10, TimeUnit.SECONDS)
                 }
                 event.message.delete().queueAfter(10, TimeUnit.SECONDS)
+                return
+            }
+
+            content.startsWith("!api등록") -> {
+                val member = event.member
+                if (member == null || !member.hasPermission(net.dv8tion.jda.api.Permission.MANAGE_CHANNEL)) {
+                    channel.sendMessage("**이 명령어는 채널 관리자만 사용할 수 있습니다.**")
+                        .queue { msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(5, TimeUnit.SECONDS)
+                    return
+                }
+                val apiKey = content.removePrefix("!api등록").trim()
+                if (apiKey.isBlank()) {
+                    channel.sendMessage("사용법: `!api등록 (토큰값)`")
+                        .queue { msg -> msg.delete().queueAfter(10, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(10, TimeUnit.SECONDS)
+                    return
+                }
+                val guildId = event.guild.id
+                val channelId = event.channel.id
+
+                loaApi.registerApiKey(guildId, channelId, apiKey) { success ->
+                    if (success) {
+                        channel.sendMessage("API 키가 안전하게 등록되었습니다.")
+                            .queue { msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS) }
+                    } else {
+                        // 중복 실패도 여기로 옴 (registerApiKey에서 중복이면 false 반환)
+                        channel.sendMessage("이미 등록된 API키이거나 등록에 실패했습니다. 다른 키를 등록해 주세요.")
+                            .queue { msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS) }
+                    }
+                    event.message.delete().queueAfter(0, TimeUnit.SECONDS)
+                }
                 return
             }
 
@@ -270,46 +304,67 @@ class MessageCommandListener(
                 return
             }
 
-            content == "!상단일" -> {
-                val resultMessage = auction.handleAuctionPreset(
-                    AuctionPreset.상단일,
-                )
-                event.channel.sendMessage(resultMessage)
-                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
-                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+//            content == "!상단일" -> {
+//                val resultMessage = auction.handleAuctionPreset(
+//                    AuctionPreset.상단일,
+//                )
+//                event.channel.sendMessage(resultMessage)
+//                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+//                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+//
+//                return
+//            }
 
+            content == "!상단일" -> {
+                auction.handleAuctionPreset(
+                    AuctionPreset.상단일,
+                    guildId,
+                    channelId
+                ) { resultMessage -> // 콜백에서 처리
+                    event.channel.sendMessage(resultMessage)
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                }
                 return
             }
 
             content == "!상하" -> {
-                val resultMessage = auction.handleAuctionPreset(
+                auction.handleAuctionPreset(
                     AuctionPreset.상하,
-                )
-                event.channel.sendMessage(resultMessage)
-                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
-                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
-
+                    guildId,
+                    channelId
+                ) { resultMessage -> // 콜백에서 처리
+                    event.channel.sendMessage(resultMessage)
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                }
                 return
             }
 
             content == "!상중" -> {
-                val resultMessage = auction.handleAuctionPreset(
+                auction.handleAuctionPreset(
                     AuctionPreset.상중,
-                )
-                event.channel.sendMessage(resultMessage)
-                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
-                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                    guildId,
+                    channelId
+                ) { resultMessage ->
+                    event.channel.sendMessage(resultMessage)
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                }
 
                 return
             }
 
             content == "!상상" -> {
-                val resultMessage = auction.handleAuctionPreset(
+                auction.handleAuctionPreset(
                     AuctionPreset.상상,
-                )
-                event.channel.sendMessage(resultMessage)
-                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
-                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                    guildId,
+                    channelId
+                ) { resultMessage ->
+                    event.channel.sendMessage(resultMessage)
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                }
 
                 return
             }
@@ -321,7 +376,7 @@ class MessageCommandListener(
                 val option1 = args.getOrNull(1)
                 val option2 = args.getOrNull(2)
 
-                val resultMessage = auction.detailAuctionSearch(quality, option1, option2)
+//                val resultMessage = auction.detailAuctionSearch(quality, option1, option2)
 
                 if (quality == null || option1 == null) {
                     // 필수값 누락
@@ -330,27 +385,54 @@ class MessageCommandListener(
                     event.message.delete().queueAfter(30, TimeUnit.SECONDS)
                     return
                 }
-                event.channel.sendMessage(resultMessage)
-                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
-                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+//                event.channel.sendMessage(resultMessage)
+//                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+//                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
 
+                auction.detailAuctionSearch(
+                    quality,
+                    option1,
+                    option2,
+                    guildId,
+                    channelId
+                ) { resultMessage ->
+                    event.channel.sendMessage(resultMessage)
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                }
             }
 
             gemRegex.matches(content) -> {
                 val gemInput = content.removePrefix("!")
-                val resultMessage = auction.findGemMinPrice(gemInput)
-                event.channel.sendMessage(resultMessage)
-                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
-                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                auction.findGemMinPrice(
+                    gemInput,
+                    guildId,
+                    channelId
+                ) { resultMessage ->
+                    event.channel.sendMessage(resultMessage)
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                }
+//                event.channel.sendMessage(resultMessage)
+//                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+//                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
 
                 return
             }
 
             content == "!비싼유각" -> {
-                val resultMessage = auction.getExpensiveEngravingBooks()
-                event.channel.sendMessage(resultMessage)
-                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
-                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+//                val resultMessage = auction.getExpensiveEngravingBooks()
+                auction.getExpensiveEngravingBooks(
+                    guildId,
+                    channelId
+                ) { resultMessage ->
+                    event.channel.sendMessage(resultMessage)
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                }
+//                event.channel.sendMessage(resultMessage)
+//                    .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+//                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
 
                 return
             }

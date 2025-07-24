@@ -196,7 +196,6 @@ class LoaApiClient(
                 entity,
                 AuctionItemResponse::class.java
             )
-            println(response)
             response.body
         }
     }

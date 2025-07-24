@@ -90,7 +90,6 @@ class AuctionService (
         if (apiKeys.isEmpty()) {
             return "해당 채널에 등록된 API키가 없습니다."
         }
-        println(apiKeys)
         val categoryNameMap = mapOf(
             200010 to "목걸이",
             200020 to "귀걸이",
@@ -104,7 +103,6 @@ class AuctionService (
                     etcOptions = namedPreset.ectOptions
                 )
                 val result = loaApi.searchAuctionItems(request, apiKeys)
-                println("여기까지 옴")
                 val minPrice = result?.items?.orEmpty()
                     ?.mapNotNull { it.auctionInfo.buyPrice }
                     ?.minOrNull()

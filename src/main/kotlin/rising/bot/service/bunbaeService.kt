@@ -17,12 +17,13 @@ class bunbaeService {
 //        val auctionDistribute = auctionDistributedTotal / (people - 1)
 
         // https://lostark.game.onstove.com/News/Notice/Views/13173 패치 노트 적용
-        val auctionDistribute = ((sellAfterFee / (people - 1)) * 0.95).toLong()
 
         // 손익분기점: 판매 실수령액
-        val breakeven = (sellAfterFee - auctionDistribute).toLong()
+        val breakeven = (sellAfterFee / (1 + 0.95 / (people - 1))).toLong()
         // 추천 입찰가: 손익분기점의 90% 또는 1.1로 나눈 값
-        val recommand = (breakeven / 1.1).toLong()
+        val recommand = (breakeven * 0.9).toLong()
+
+        val auctionDistribute = ((breakeven.toDouble() / (people - 1)) * 0.95).toLong()
 
         return """
             시세(판매가): $gold
@@ -35,6 +36,11 @@ class bunbaeService {
         """.trimIndent()
     }
 }
+
+// 낙찰자 수익 = 낙찰자의 판매 금액 * 0.95 - 낙찰금액
+// 참여자 수익 = 낙찰금액 / (참여인원 - 1) * 0.95
+// 손익분기점 조건: 낙찰자의 판매 금액 * 0.95 - 낙찰금액 = 낙찰금액 / (참여인원 -1) * 0.95
+// 낙찰금액 = 판매금액 * 0.95 / {1 + (0.95 / n-1)}
 
 //시세(판매가): 240000
 //인원: 8

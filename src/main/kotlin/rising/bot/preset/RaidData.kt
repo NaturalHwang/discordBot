@@ -7,7 +7,7 @@ object RaidData {
         RaidPreset(DifficultyLevel.NORMAL,"1막", 1,161517294610),
         RaidPreset(DifficultyLevel.NORMAL,"1막", 2,213231745024),
         RaidPreset(DifficultyLevel.NORMAL,"2막", 1,275449621248),
-        RaidPreset(DifficultyLevel.NORMAL,"2막", 2,39940195809),
+        RaidPreset(DifficultyLevel.NORMAL,"2막", 2,399401958090),
         RaidPreset(DifficultyLevel.NORMAL,"3막", 1,368773967531),
         RaidPreset(DifficultyLevel.NORMAL,"3막", 2,334691604286),
         RaidPreset(DifficultyLevel.NORMAL,"3막", 3,731975350664),

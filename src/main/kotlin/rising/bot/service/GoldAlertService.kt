@@ -53,6 +53,8 @@ class GoldAlertService(
             override fun onDataChange(eventsSnapshot: DataSnapshot) {
 //                캐싱된 guildId-channelId 목록(Map<String,String>)
                 val allChannels = channelCache.allGuildChannelPairs()
+                val sentMessages = mutableSetOf<String>()
+
                 for ((guildId, channelId) in allChannels) {
                     val memberRef = firebaseDatabase.getReference("channels")
                         .child(guildId)
@@ -74,6 +76,12 @@ class GoldAlertService(
                                     ZonedDateTime.parse(startTimeStr, DateTimeFormatter.ISO_ZONED_DATE_TIME)
                                 } catch (e: Exception) { null } ?: continue
                                 val minutesUntilEvent = java.time.Duration.between(now, eventStartTime).toMinutes()
+
+                                // 같은 알림 2번 발송되는 이슈 조치
+                                val eventId = eventSnapshot.key ?: (contentsName + startTimeStr)
+                                val msgKey = "$channelId-$eventId"
+                                if (sentMessages.contains(msgKey)) continue
+                                sentMessages.add(msgKey)
 
                                 if (minutesUntilEvent in 9..10) {
                                     val message = "$mentions\n[$contentsName] 보상: $rewardName\n시작 10분 전입니다! 준비하세요."

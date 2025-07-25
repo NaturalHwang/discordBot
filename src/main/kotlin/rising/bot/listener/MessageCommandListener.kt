@@ -1,17 +1,14 @@
 package rising.bot.listener
 
-import com.google.firebase.database.FirebaseDatabase
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import org.springframework.stereotype.Component
 import rising.bot.component.ChannelCache
 import rising.bot.component.LoaApiClient
 import rising.bot.preset.AuctionPreset
+import rising.bot.preset.DifficultyLevel
 import rising.bot.repository.MainCharacterRepository
-import rising.bot.service.AuctionService
-import rising.bot.service.GoldAlertService
-import rising.bot.service.GoldCalendarScheduler
-import rising.bot.service.bunbaeService
+import rising.bot.service.*
 import java.util.concurrent.TimeUnit
 
 @Component
@@ -24,7 +21,7 @@ class MessageCommandListener(
     private val repo: MainCharacterRepository,
     private val auction: AuctionService,
     private val loaApi: LoaApiClient,
-    private val firebaseDatabase: FirebaseDatabase
+    private val raid: RaidInfoService,
 ) : ListenerAdapter() {
 
     override fun onMessageReceived(event: MessageReceivedEvent) {
@@ -113,7 +110,11 @@ class MessageCommandListener(
                 **!(레벨)겁 or 작 or 멸 or 홍** : 해당 레벨의 보석 최저가를 출력합니다.
                 예시: `!10겁`
                  
-                 **!비싼유각** : 비싼 유각 상위 10개를 출력합니다.
+                **!비싼유각** : 비싼 유각 상위 10개를 출력합니다.
+                 
+                **!딜지분**: 전투 분석기를 토대로 자신의 딜 지분을 확인합니다
+                사용법) `!딜지분 난이도 레이드종류(서막~3막, 익카) 관문 총딜량(서폿 분들의 경우 조력 수치)
+                예시: !딜지분 노말 3막 3 179707913758
             """.trimIndent()
                 channel.sendMessage(helpMessage).queue { msg ->
                     msg.delete().queueAfter(30, TimeUnit.SECONDS)
@@ -427,6 +428,36 @@ class MessageCommandListener(
                 event.message.delete().queueAfter(30, TimeUnit.SECONDS)
 
                 return
+            }
+
+            content.startsWith("!딜지분") -> {
+                val args = content.removePrefix("!딜지분").trim().split("\\s+".toRegex())
+
+                val levelKor = args.getOrNull(0)
+                val act = args.getOrNull(1)
+                val gate = args.getOrNull(2)?.toIntOrNull()
+                val myDamage = args.getOrNull(3)?.toLongOrNull()
+
+                val level = DifficultyLevel.fromKorean(levelKor ?: "")
+
+                if (level == null || act == null || gate == null || myDamage == null) {
+                    event.channel.sendMessage("❗형식: `!딜지분 (난이도) (레이드) (관문) (총딜량)`\n예: `!딜지분 노말 1막 2 12141341511`")
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                    event.message.delete().queueAfter(30, TimeUnit.SECONDS)
+                    return
+                }
+
+                val resultMessage = raid.myDamagePercent(level, act, gate, myDamage)
+
+                if (resultMessage != null) {
+                    event.channel.sendMessage("$resultMessage \n**(에스더 택틱에 따라 어느 정도 오차가 있습니다.)**")
+                        .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
+                } else {
+                    event.channel.sendMessage("❌ `${level.korean} ${act} ${gate}관문` 정보가 데이터에 없습니다. 올바른 형식을 입력해주세요")
+                        .queue { msg -> msg.delete().queueAfter(15, TimeUnit.SECONDS) }
+                }
+
+                event.message.delete().queueAfter(30, TimeUnit.SECONDS)
             }
 
             else -> {

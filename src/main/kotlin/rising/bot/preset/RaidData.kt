@@ -15,11 +15,15 @@ object RaidData {
 
         RaidPreset(DifficultyLevel.HARD,"서막", 1,108972915945),
         RaidPreset(DifficultyLevel.HARD,"서막", 2,154366968702),
-        RaidPreset(DifficultyLevel.HARD,"1막", 1,269870428126),
-        RaidPreset(DifficultyLevel.HARD,"1막", 2,398607625792),
-        RaidPreset(DifficultyLevel.HARD,"2막", 1,516125060783),
-        RaidPreset(DifficultyLevel.HARD,"2막", 2,911160408772),
-        RaidPreset(DifficultyLevel.HARD,"3막", 1,652499653375),
+//        팔 100억, 실드 200억
+        RaidPreset(DifficultyLevel.HARD,"1막", 1,299024428126),
+//        히든 에아달린 257억
+        RaidPreset(DifficultyLevel.HARD,"1막", 2,372905572766),
+//        배리어 500억, 500억
+        RaidPreset(DifficultyLevel.HARD,"2막", 1,598432060783),
+//        니나브/+1,히든 아제나 -103, -171, -660
+        RaidPreset(DifficultyLevel.HARD,"2막", 2,817760408772),
+        RaidPreset(DifficultyLevel.HARD,"3막", 1,622059653375),
         RaidPreset(DifficultyLevel.HARD,"3막", 2,663116555628),
         RaidPreset(DifficultyLevel.HARD,"3막", 3,1473779836172),
         RaidPreset(DifficultyLevel.HARD,"익카", 1,1934453510628)

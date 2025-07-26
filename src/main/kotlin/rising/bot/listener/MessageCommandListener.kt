@@ -39,8 +39,10 @@ class MessageCommandListener(
         val gemRegex = Regex("""^!(\d+)(겁|멸|작|홍)$""")
 
 //        명령 채널 체크(이 서버의 명령 채널에서만 동작)
-        if (channelCache.getChannelId(guildId) != channelId) return
+//        if (channelCache.getChannelId(guildId) != channelId) return
+        val isRegisterCommand = content == "!채널등록"
 
+        if (!isRegisterCommand && channelCache.getChannelId(guildId) != channelId) return
 //        명령 채널 등록
         if(content == "!채널등록") {
             val member = event.member
@@ -450,7 +452,7 @@ class MessageCommandListener(
                 val resultMessage = raid.myDamagePercent(level, act, gate, myDamage)
 
                 if (resultMessage != null) {
-                    event.channel.sendMessage("$resultMessage \n**(에스더 택틱에 따라 어느 정도 오차가 있습니다.)**")
+                    event.channel.sendMessage("$resultMessage \n**(에스더 택틱, 오브젝트(에기르 심장 등)딜에 따라 어느 정도 오차가 있습니다.)**")
                         .queue { msg -> msg.delete().queueAfter(30, TimeUnit.SECONDS) }
                 } else {
                     event.channel.sendMessage("❌ `${level.korean} ${act} ${gate}관문` 정보가 데이터에 없습니다. 올바른 형식을 입력해주세요")

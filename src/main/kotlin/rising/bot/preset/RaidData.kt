@@ -21,12 +21,13 @@ object RaidData {
         RaidPreset(DifficultyLevel.HARD,"1막", 2,372905572766),
 //        배리어 500억, 500억
         RaidPreset(DifficultyLevel.HARD,"2막", 1,598432060783),
-//        니나브/+1,히든 아제나 -103, -171, -660
+//        니나브/+1,히든 아제나 -103억, -171억, -660억
         RaidPreset(DifficultyLevel.HARD,"2막", 2,817760408772),
         RaidPreset(DifficultyLevel.HARD,"3막", 1,622059653375),
         RaidPreset(DifficultyLevel.HARD,"3막", 2,663116555628),
         RaidPreset(DifficultyLevel.HARD,"3막", 3,1473779836172),
-        RaidPreset(DifficultyLevel.HARD,"익카", 1,1934453510628)
+//        아제나 228.5억 공카 431억 대격 카단 95억
+        RaidPreset(DifficultyLevel.HARD,"익카", 1,1859003510628)
     )
 }
 
@@ -45,7 +46,7 @@ enum class DifficultyLevel(val korean: String) {
 
 data class RaidPreset(
     val level: DifficultyLevel, // 난이도: Normal, Hard, etc.
-    val raidAct: String,           // Act 1, 2, 3
+    val raidAct: String,        // Act 1, 2, 3
     val gate: Int,              // 관문 번호
     val hp: Long                // 해당 관문 보스 체력
 )

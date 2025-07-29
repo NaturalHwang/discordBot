@@ -1,4 +1,4 @@
-package rising.bot.listener
+package rising.bot.command.listener
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter

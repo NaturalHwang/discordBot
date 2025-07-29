@@ -220,7 +220,7 @@ class AuctionService (
             return "해당 채널에 등록된 API키가 없습니다."
         }
 
-        val allPresets = AuctionPreset.상단일 + AuctionPreset.상하 + AuctionPreset.상중 + AuctionPreset.상상
+        val allPresets = AuctionPreset.상단일 + AuctionPreset.상하 + AuctionPreset.상중 + AuctionPreset.상상 + AuctionPreset.중중
 
         val normOpt1 = option1?.replace(" ", "")
         val normOpt2 = option2?.replace(" ", "")

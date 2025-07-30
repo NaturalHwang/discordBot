@@ -6,13 +6,16 @@ import net.dv8tion.jda.api.requests.GatewayIntent
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import rising.bot.command.listener.*
+import rising.bot.command.listener.AuctionSlashCommandListener
+import rising.bot.command.listener.CalendarIslandSlashCommandListener
+import rising.bot.command.listener.CommonSlashCommandListener
+import rising.bot.command.listener.RaidSlashCommandListener
 import rising.bot.command.registrar.SlashCommandRegistrar
 
 @Configuration
 class DiscordConfig(
     private val commonSlashCommandListener: CommonSlashCommandListener,
-    private val messageCommandListener: MessageCommandListener,
+//    private val messageCommandListener: MessageCommandListener,
 //    @Value("\${discord.channel-id}") private val channelId: String
 //    private val userContextListener: UserContextListener
     private val slashCommandRegistrars: List<SlashCommandRegistrar>,
@@ -26,7 +29,7 @@ class DiscordConfig(
         val jda = JDABuilder.createDefault(botToken)
             .enableIntents(GatewayIntent.MESSAGE_CONTENT)
             .addEventListeners(
-                messageCommandListener,
+//                messageCommandListener,
                 commonSlashCommandListener,
                 auctionSlashCommandListener,
                 raidSlashCommandListener,
@@ -36,15 +39,15 @@ class DiscordConfig(
             .build()
         jda.awaitReady()
 
-        val guild = jda.getGuildById("963099435867459634")
-            ?: error("❌ 테스트용 길드를 찾을 수 없습니다.")
+//        val guild = jda.getGuildById("963099435867459634")
+//            ?: error("❌ 테스트용 길드를 찾을 수 없습니다.")
 
-        println("💡 명령어 등록 대상 길드: ${guild.name} (${guild.id})")
+//        println("💡 명령어 등록 대상 길드: ${guild.name} (${guild.id})")
 
         // 등록기들 호출
         val allCommands = slashCommandRegistrars.flatMap { it.provideCommands() }
 
-        guild.updateCommands().addCommands(allCommands).queue {
+        jda.updateCommands().addCommands(allCommands).queue {
             println("✅ Slash 명령어 ${allCommands.size}개 등록 완료")
         }
 

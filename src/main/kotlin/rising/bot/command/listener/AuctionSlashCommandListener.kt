@@ -49,9 +49,24 @@ class AuctionSlashCommandListener(
             }
 
             "gem" -> {
-                val gemInput = event.getOption("종류")?.asString ?: return
-                val result = auction.findGemMinPrice(gemInput, guildId, channelId)
-                event.reply(result).setEphemeral(true).queue()
+                val allOptions = event.options
+                val gemInput = event.getOption("gemtype")?.asString?.replace("\\s".toRegex(), "")
+
+                if (gemInput == null) {
+                    event.reply("⚠️ 옵션에서 '종류'를 찾을 수 없습니다. 올바른 명령어를 입력했는지 확인해 주세요.")
+                        .setEphemeral(true).queue()
+                    return
+                }
+                event.deferReply(true).queue() // 응답 지연 알림
+
+                val result = try {
+                    auction.findGemMinPrice(gemInput, guildId, channelId)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    "❌ 오류 발생: ${e.message}"
+                }
+
+                event.hook.sendMessage(result).queue()
             }
 
             "expensiveengravings" -> {

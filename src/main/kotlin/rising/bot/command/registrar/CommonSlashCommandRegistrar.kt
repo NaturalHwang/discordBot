@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.interactions.DiscordLocale
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.CommandData
 import net.dv8tion.jda.api.interactions.commands.build.Commands
+import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import org.springframework.stereotype.Component
 
 @Component
@@ -16,13 +17,22 @@ class CommonSlashCommandRegistrar : SlashCommandRegistrar {
 
             // 대표 캐릭터 등록
             Commands.slash("registercharacter", "레벨업 감지 기능 등록")
-                .addOption(OptionType.STRING, "캐릭터명", "캐릭터 이름", true)
+//                .addOption(OptionType.STRING, "캐릭터명", "캐릭터 이름", true)
+                .addOptions(
+                    OptionData(OptionType.STRING, "name", "대표 캐릭터명", true)
+                        .setNameLocalization(DiscordLocale.KOREAN, "대표캐릭터명")
+                        .setDescriptionLocalization(DiscordLocale.KOREAN, "원정대 대표 캐릭터명 입력")
+                )
                 .setNameLocalization(DiscordLocale.KOREAN, "캐릭터등록")
                 .setDescriptionLocalization(DiscordLocale.KOREAN, "대표 캐릭터를 등록합니다"),
 
             // 대표 캐릭터 등록 해제
             Commands.slash("unregistercharacter", "레벨업 감지 기능 해제")
-                .addOption(OptionType.STRING, "캐릭터명", "캐릭터 이름", true)
+                .addOptions(
+                    OptionData(OptionType.STRING, "name", "대표 캐릭터명", true)
+                        .setNameLocalization(DiscordLocale.KOREAN, "대표캐릭터명")
+                        .setDescriptionLocalization(DiscordLocale.KOREAN, "원정대 대표 캐릭터명 입력")
+                )
                 .setNameLocalization(DiscordLocale.KOREAN, "등록해제")
                 .setDescriptionLocalization(DiscordLocale.KOREAN, "대표 캐릭터 등록을 해제합니다"),
 
@@ -33,7 +43,12 @@ class CommonSlashCommandRegistrar : SlashCommandRegistrar {
 
             // API 키 등록
             Commands.slash("registerapi", "api키 등록")
-                .addOption(OptionType.STRING, "api키", "Loa API key", true)
+//                .addOption(OptionType.STRING, "key", "Loa API key", true)
+                .addOptions(
+                    OptionData(OptionType.STRING, "key", "api키 등록", true)
+                        .setNameLocalization(DiscordLocale.KOREAN, "api키")
+                        .setDescriptionLocalization(DiscordLocale.KOREAN, "api 키 입력 필수")
+                )
                 .setNameLocalization(DiscordLocale.KOREAN, "api등록")
                 .setDescriptionLocalization(DiscordLocale.KOREAN, "Loa API 키를 등록합니다"),
         )

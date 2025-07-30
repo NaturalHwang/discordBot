@@ -84,4 +84,8 @@ class CharacterLevelWatcher(
         }
         charRepo.deleteAll(guildId, channelId, deleted)
     }
+
+    fun characterInfo() {
+
+    }
 }

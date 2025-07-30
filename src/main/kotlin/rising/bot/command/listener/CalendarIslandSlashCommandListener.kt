@@ -13,9 +13,6 @@ class CalendarIslandSlashCommandListener(
     private val goldCalendarScheduler: GoldCalendarScheduler,
 ) : ListenerAdapter() {
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
-        val guildId = event.guild?.id ?: return
-        val channelId = event.channel.id
-
         when(event.name){
             "goldisland" -> {
                 event.deferReply(true).queue()

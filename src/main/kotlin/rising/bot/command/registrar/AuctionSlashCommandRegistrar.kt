@@ -43,7 +43,11 @@ class AuctionSlashCommandRegistrar : SlashCommandRegistrar{
                 .setDescriptionLocalization(DiscordLocale.KOREAN, "악세 상세 검색"),
 
             Commands.slash("gem", "보석 최저가 검색")
-                .addOption(OptionType.STRING, "보석", "예: 10겁, 9작 등", true)
+                .addOptions(
+                    OptionData(OptionType.STRING, "gemtype", "보석 종류", true)
+                        .setNameLocalization(DiscordLocale.KOREAN, "보석종류")
+                        .setDescriptionLocalization(DiscordLocale.KOREAN, "예) 7겁, 10멸, 10작")
+                )
                 .setNameLocalization(DiscordLocale.KOREAN, "보석")
                 .setDescriptionLocalization(DiscordLocale.KOREAN, "보석 최저가 검색"),
 
